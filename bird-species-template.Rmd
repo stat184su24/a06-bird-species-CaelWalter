@@ -1,7 +1,7 @@
 ---
 title: "Activity: Bird Species"
-author: "Your Names Here"
-date: "DUE DATE "
+author: "Cael Walter"
+date: "07/24/24"
 output: html_notebook
 ---
 
@@ -10,16 +10,20 @@ output: html_notebook
 
 ```{r}
 # Load `tidyverse` and `dcData` packages
-
-
+library(tidyverse)
+library(dcData)
 
 
 # Load the `OrdwayBirds` data set into your RStudio environment from the `dcData` package
+data("OrdwayBirds")
 
 
 
 
 # Show a few commands used to inspect the data set a few different ways
+head(OrdwayBirds)
+summary(OrdwayBirds)
+str(OrdwayBirds)
 
 
 
@@ -35,11 +39,15 @@ Before we begin, the book gives us some instructions to select a few key variabl
 
 ```{r}
 # Get the data table & clean up dates (see Data Computing eBook)
-
+OrdwayBirds <-
+  OrdwayBirds %>%
+  select( SpeciesName, Month, Day ) %>%
+  mutate( Month = as.numeric(as.character(Month)), 
+          Day = as.numeric(as.character(Day)))
 
 
 # Inspect resulting data
-
+head(OrdwayBirds)
 
 ```
 
@@ -52,12 +60,16 @@ Before we begin, the book gives us some instructions to select a few key variabl
 
 ```{r}
 # unique species in original data (including mis-spellings)
+unique_species_original <- unique(OrdwayBirds$SpeciesName)
+print(unique_species_original)
 
-
+#Therer are 275 unique species in the original data.
 
 # unique species in the clean list
+unique_species_clean <- unique(OrdwayBirds$SpeciesName)
+print(unique_species_clean)
 
-
+#There is still 275 unique species in the clean list.
 
 ```
 
@@ -68,36 +80,66 @@ Before we begin, the book gives us some instructions to select a few key variabl
 
 
 ```{r}
-# inspect OrdwaySpeciesNames
+install.packages("dplyr")
+library(dplyr)
 
+# Load the datasets
+data("OrdwayBirds")
+data("OrdwaySpeciesNames")
+
+
+
+
+# inspect OrdwaySpeciesNames
+head(OrdwaySpeciesNames)
+summary(OrdwaySpeciesNames)
+str(OrdwaySpeciesNames)
 
 # inner join
+OrdwayBirds_joined <- inner_join(OrdwayBirds, OrdwaySpeciesNames, by = "SpeciesName")
 
 
 
 
 # inspect the data after the join
-
+head(OrdwayBirds_joined)
+summary(OrdwayBirds_joined)
+str(OrdwayBirds_joined)
 
 ```
-
-
+The variable used for matching cases is SpeciesName.
+Added variables: SpeciesNameCleaned, Sex, Age, BandNumber, TrapID, Weather, DataEntryPerson, BandingReport, Weight. 
 ### Step 3
 
 We want to identify the top 5-6 bird species sighted at the Katherine Ordway Natural History Study Area.
 
 ```{r}
 # count sightings by species in descending order
+species_counts <- OrdwayBirds %>%
+  group_by(SpeciesName) %>%
+  summarise(Count = n()) %>%
+  arrange(desc(Count))
 
-
-
+print(species_counts)
 
 # a hint in the text book recommends displaying the top 10 species to choose our threshold
-
+top_10_species <- head(species_counts, 10)
+print(top_10_species)
 
 
 # define a sightings threshold; produce a table with only birds belonging to major species
+threshold <- 1000
 
+
+major_species <- species_counts %>%
+  filter(Count >= threshold) %>%
+  pull(SpeciesName)
+
+OrdwayBirds_major_species <- OrdwayBirds %>%
+  filter(SpeciesName %in% major_species)
+
+
+print(OrdwayBirds_major_species)
 
 
 
@@ -110,7 +152,13 @@ We now want to produce a month-by-month count for each of the major species, and
 
 ```{r}
 # prepare glyph-ready data table called `ByMonth`
+ByMonth <- OrdwayBirds_major_species %>%
+  group_by(SpeciesName, Month) %>%
+  summarise(count = n()) %>%
+  ungroup()
 
+
+print(ByMonth)
 
 
 ```
@@ -123,10 +171,10 @@ Now use the ggplot template below to generate the desired graph. (Remark you can
 # ggplot commands
 
 ByMonth %>% 
-  ggplot(aes(x = Month, y = count, color = Species)) + 
+  ggplot(aes(x = Month, y = count, color = SpeciesName)) + 
   geom_line()
 
-ByMonth %>% ggplot(aes(x=Month,y=count ,fill=Species)) +
+ByMonth %>% ggplot(aes(x=Month,y=count ,fill=SpeciesName)) +
   geom_bar(stat='identity',position='stack', width=.9) 
 
 ```
@@ -134,21 +182,27 @@ ByMonth %>% ggplot(aes(x=Month,y=count ,fill=Species)) +
 According to the graph, we can answer the questions posed:
 
 ##### 1. Which species are present year-round?  
-
+American Goldfinch: Present in most months, indicating year-round presence.
+Black-capped Chickadee: Present in most months, indicating year-round presence.
 
 
 ##### 2. Which species are migratory, that is, primarily present in one or two seasons?
+American Goldfinch: Primarily seen in months 9 and 10, indicating it may be migratory.
+Slate-colored Junco: Primarily seen in months 4 and 10 indicating it may be migratory with peak presence in cooler months.
 
 
 
 
 ##### 3. What is the peak month for each major species? (bullet list)
-
+American Goldfinch: Peak in month 10.
+Black-capped Chickadee: Peak in month 11.
+Slate-colored Junco: Peak in month 10.
+Tree Sparrow: Peaks in month 3.
 
 
 
 ##### 4. Which major species are seen in good numbers for at least 6 months of the year?
-
+Slate-colored Junco and American Goldfinch
 
 
 ```{r}
