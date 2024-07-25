@@ -55,9 +55,6 @@ head(OrdwayBirds)
 
 ### Step 1
 
-
-
-
 ```{r}
 # unique species in original data (including mis-spellings)
 unique_species_original <- unique(OrdwayBirds$SpeciesName)
@@ -76,8 +73,6 @@ print(unique_species_clean)
 
 ### Step 2
   
-
-
 
 ```{r}
 install.packages("dplyr")
@@ -109,6 +104,9 @@ str(OrdwayBirds_joined)
 ```
 The variable used for matching cases is SpeciesName.
 Added variables: SpeciesNameCleaned, Sex, Age, BandNumber, TrapID, Weather, DataEntryPerson, BandingReport, Weight. 
+
+
+
 ### Step 3
 
 We want to identify the top 5-6 bird species sighted at the Katherine Ordway Natural History Study Area.
